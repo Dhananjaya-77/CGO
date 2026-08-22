@@ -1,0 +1,48 @@
+package com.securetrack.backend.models;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+/**
+ * IoTModule - the ESP32-based edge device physically attached to a Container.
+ * Reports battery level, light sensor state (ambient light inside the seal)
+ * and magnet/reed sensor state (seal integrity) via MQTT telemetry.
+ */
+@Entity
+@Table(name = "iot_module")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class IoTModule {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "module_id")
+    private Long moduleId;
+
+    /** Hardware identifier broadcast by the ESP32 device (used as MQTT topic key). */
+    @Column(name = "device_uid", nullable = false, unique = true, length = 64)
+    private String deviceUid;
+
+    @Column(name = "battery_level")
+    private Integer batteryLevel;
+
+    /** True if the ambient light sensor detects light (container may be open). */
+    @Column(name = "light_sensor_active")
+    private Boolean lightSensorActive;
+
+    /** True if the magnetic reed switch reports the seal/door is intact & closed. */
+    @Column(name = "magnet_sensor_active")
+    private Boolean magnetSensorActive;
+
+    @Column(name = "last_seen")
+    private LocalDateTime lastSeen;
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "iotModule")
+    private Container container;
+}
